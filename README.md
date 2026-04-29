@@ -11,8 +11,8 @@ Threat Landscape Explorer
 | API Docs | http://localhost:8000/docs |
 ## Getting Started
 ```bash
-git clone https://github.com/YOUR_USERNAME/threat-landscape.git
-cd threat-landscape
+git clone https://github.com/calebflo/CSEC4390-CF.git
+cd CSEC4390-CF
 docker-compose up --build
 ```
 ## Tech Stack
@@ -21,8 +21,4 @@ docker-compose up --build
 | Frontend | React 18 + Vite + Tailwind CSS |
 | Backend | FastAPI + Python 3.11 |
 | DevOps | Docker Compose + GitHub Actions |
-## Individual Contribution Summary
-| Team Member | Story Points | Contribution % |
-|---|---|---|
-| YOUR NAME HERE | 106 | 100.0% |
-| **Team Total** | **106** | **100.0%** |
+
