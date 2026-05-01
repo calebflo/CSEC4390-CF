@@ -9,6 +9,7 @@ import Module06  from "./pages/Module06.jsx"
 import Module07  from "./pages/Module07.jsx"
 import Module08  from "./pages/Module08.jsx"
 import Module09  from "./pages/Module09.jsx"
+import MoltbookFeed from "./pages/MoltbookFeed.jsx"
 
 const nav = [
   { to: "/",    label: "Dashboard",          num: "◉" },
@@ -21,6 +22,7 @@ const nav = [
   { to: "/m07", label: "Smart Home Pivot",    num: "07", sev: "CRIT" },
   { to: "/m08", label: "Wearable Biometrics", num: "08", sev: "HIGH" },
   { to: "/m09", label: "Agentic AI",          num: "09", sev: "CRIT" },
+  { to: "/moltbook", label: "Moltbook Feed", num: "⚡", sev: "LIVE" },
 ]
 
 export default function App() {
@@ -61,6 +63,7 @@ export default function App() {
       {/* MAIN CONTENT */}
       <main style={{flex:1, overflowY:"auto"}}>
         <Routes>
+          <Route path="/moltbook" element={<MoltbookFeed />} />
           <Route path="/"    element={<Dashboard />} />
           <Route path="/m01" element={<Module01 />} />
           <Route path="/m02" element={<Module02 />} />
