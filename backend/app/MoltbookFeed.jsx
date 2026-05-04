@@ -1,5 +1,7 @@
 import { useState } from "react"
 import ModuleHeader from "../components/ModuleHeader.jsx"
+import { useSimulation } from "../context/SimulationContext.jsx"
+import { useNavigate } from "react-router-dom"
 
 const THREATS = {
   "prompt injection": { module:"02", color:"#ef4444", label:"Prompt Injection" },
@@ -131,6 +133,39 @@ function PostCard({ id, title, content, author, submolt, upvotes, comments, crea
   const cr = String(created || "")
   const threats = detectThreats(t + " " + c)
   const hot = threats.length > 0
+  const { setPending } = useSimulation()
+  const navigate = useNavigate()
+ const simulateAttack = async (e) => {
+  e.stopPropagation()
+
+  const targetModule = threats.length > 0 ? threats[0].module : "09"
+  try {
+    const res = await fetch("http://localhost:8000/api/moltbook/simulate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: t, content: c, module: targetModule })
+    })
+    const data = await res.json()
+    setPending(data)
+    navigate("/m" + targetModule)
+  } catch (err) {
+    console.error("Simulate failed:", err)
+  }
+} 
+{hot && (
+  <button
+    onClick={simulateAttack}
+    style={{
+      cursor: "pointer", border: "none", borderRadius: 4,
+      fontFamily: "Courier New", fontSize: 9, fontWeight: 700,
+      padding: "4px 10px", marginBottom: 6,
+      background: threats[0].color, color: "#000",
+      letterSpacing: 0.5,
+    }}
+  >
+    ⚡ Simulate This Attack → Module {threats[0].module}
+  </button>
+)}
   return (
     <div onClick={() => setOpen(o => !o)} style={{
       background: hot ? "#111827" : "#0f1623",

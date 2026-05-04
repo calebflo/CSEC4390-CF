@@ -1,92 +1,123 @@
-import { useState } from "react"
-import ModuleHeader from "../components/ModuleHeader.jsx"
-import StatCard     from "../components/StatCard.jsx"
-import Terminal     from "../components/Terminal.jsx"
-import DefenseBox   from "../components/DefenseBox.jsx"
+﻿import { useState, useEffect, useRef } from "react"
+import { useSimulation } from "../context/SimulationContext.jsx"
+
+const MODULE = "06"
+
+const DEFAULT_STEPS = [
+  "[SCAN]     Shodan query: org:'FinsecCorp' — 8 internet-exposed IoT devices found",
+  "[TARGET]   Hikvision IP camera at lobby (CVE-2021-36260) — unauthenticated RCE",
+  "[EXPLOIT]  Command injection via ISAPI endpoint — root shell on camera firmware",
+  "[PIVOT]    Camera on VLAN 10 — ARP spoofing bridges to corporate VLAN 20",
+  "[CREDS]    Axis printer default credentials (admin/admin) — print job history accessed",
+  "[LATERAL]  HVAC controller Modbus port 502 exposed — building automation network reached",
+  "[PERSIST]  Malicious firmware flashed to camera — survives factory reset, C2 maintained",
+  "[EXFIL]    Lobby camera live feed exfiltrated — badge reader logs show employee schedules",
+  "[IMPACT]   Physical security intelligence sold — targeted office break-in planned",
+]
+
+const DEFENDED_STEPS = [
+  "[SCAN]     Shodan exposure alert — ASM platform detected internet-facing camera in 2 hours",
+  "[PATCH]    CVE-2021-36260 patched via firmware update pushed by MDM for IoT",
+  "[SEGMENT]  IoT VLAN fully isolated — no routing to corporate VLAN (ACL enforced)",
+  "[HARDEN]   Default credentials rotated — printer admin access requires AD authentication",
+  "[CONTROL]  Modbus port 502 blocked at industrial firewall — OT/IT boundary enforced",
+  "[DETECT]   Firmware integrity check failed — tampered device quarantined automatically",
+  "[MONITOR]  Network traffic analysis (Claroty) flagged anomalous camera egress",
+  "[OUTCOME]  Attack contained to IoT VLAN — zero corporate network access achieved",
+]
+
+const STATS = [
+  { label: "Exposed IoT Devices", value: "8", color: "text-red-400" },
+  { label: "Devices with Default Creds", value: "3", color: "text-red-400" },
+  { label: "CVEs Exploitable", value: "5", color: "text-orange-400" },
+  { label: "MITRE Technique", value: "T1078", color: "text-cyan-400" },
+]
 
 export default function Module06() {
-  const [lines, setLines]     = useState([])
+  const { pending, setPending } = useSimulation()
+  const [output, setOutput] = useState([])
   const [running, setRunning] = useState(false)
   const [defended, setDefended] = useState(false)
+  const [simData, setSimData] = useState(null)
+  const termRef = useRef(null)
 
-  const attackSteps = [
-    "[SCAN] Running Shodan scan on FinsecCorp IP range...",
-    "[FOUND] Hikvision IP camera — CVE-2021-36260 (CVSS 9.8)",
-    "[EXPLOIT] Sending crafted HTTP request — auth bypass...",
-    "[SHELL] Reverse shell established on IP camera...",
-    "[PIVOT] ⚠ Lateral movement to corporate LAN via VLAN hop",
-  ]
-
-  const defenseSteps = [
-    "[MONITOR] Security controls active — scanning for threats...",
-    "[DETECT] Anomalous behavior pattern identified...",
-    "[BLOCK] ✓ Attack vector blocked at perimeter",
-    "[ALERT] ✓ SOC notified — incident ticket created",
-    "[LOG] ✓ Full forensic trail preserved",
-  ]
-
-  const run = async () => {
-    setRunning(true)
-    setLines([])
-    const steps = defended ? defenseSteps : attackSteps
-    for (let s of steps) {
-      await new Promise(r => setTimeout(r, 900))
-      setLines(prev => [...prev, s])
+  useEffect(() => {
+    if (pending?.module === MODULE) {
+      setSimData({ title: pending.title, steps: pending.steps })
+      setPending(null)
+      setOutput([])
+      setRunning(false)
+      setDefended(false)
     }
-    setRunning(false)
+  }, [pending, setPending])
+
+  useEffect(() => {
+    if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight
+  }, [output])
+
+  function runSim() {
+    const steps = simData?.steps ?? (defended ? DEFENDED_STEPS : DEFAULT_STEPS)
+    setOutput([])
+    setRunning(true)
+    steps.forEach((line, i) => {
+      setTimeout(() => {
+        setOutput(prev => [...prev, line])
+        if (i === steps.length - 1) setRunning(false)
+      }, i * 700)
+    })
   }
 
   return (
-    <div>
-      <ModuleHeader
-        num="06"
-        title="IoT Attack Mapper"
-        subtitle="Map and exploit FinsecCorp branch IoT devices"
-        badges={["HIGH","T1078","T1190"]}
-      />
-      <div style={{padding:"20px 24px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",
-                     gap:12,marginBottom:16}}>
-          <StatCard label="Devices" value="8" color="#06b6d4"/>
-          <StatCard label="Critical Risk" value="3" color="#ef4444"/>
-          <StatCard label="Default Creds" value="5" color="#f97316"/>
-          <StatCard label="Pivot Hops" value="5" color="#eab308"/>
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="border border-orange-500/40 rounded p-4 bg-orange-500/5">
+        <div className="flex items-center gap-3 mb-1">
+          <span className="text-xs font-mono text-orange-400 border border-orange-500/50 px-2 py-0.5 rounded">MODULE 06</span>
+          <span className="text-xs font-mono text-orange-400">SEVERITY: HIGH</span>
+          <span className="text-xs font-mono text-gray-500">MITRE T1078 · CVE-2021-36260</span>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-          <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
-            <input type="checkbox" checked={defended}
-              onChange={e => setDefended(e.target.checked)}
-              style={{width:16,height:16,cursor:"pointer"}}/>
-            <span style={{fontSize:11,color:"#9ca3af"}}>
-              Defended Mode
-            </span>
-          </label>
+        <h1 className="text-2xl font-bold text-white font-mono">IoT Attack Mapper</h1>
+        <p className="text-sm text-gray-400 mt-1">8-branch IoT device compromise at FinsecCorp HQ — camera to corporate LAN pivot.</p>
+        {simData && (
+          <div className="mt-2 text-xs font-mono text-yellow-400 border border-yellow-500/30 bg-yellow-500/5 px-3 py-1.5 rounded">
+            ⚡ Moltbook threat loaded: "{simData.title}"
+          </div>
+        )}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {STATS.map(s => (
+          <div key={s.label} className="border border-gray-700 rounded p-3 bg-gray-900/50">
+            <div className={`text-xl font-bold font-mono ${s.color}`}>{s.value}</div>
+            <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-4">
+        <button onClick={runSim} disabled={running} className="px-5 py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm font-mono rounded transition-colors">
+          {running ? "▶ RUNNING..." : "▶ RUN SIMULATION"}
+        </button>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <div onClick={() => { setDefended(d => !d); setOutput([]); setSimData(null) }} className={`w-10 h-5 rounded-full transition-colors ${defended ? "bg-green-600" : "bg-gray-600"}`}>
+            <div className={`w-4 h-4 mt-0.5 rounded-full bg-white transition-transform ${defended ? "translate-x-5 ml-0.5" : "translate-x-0.5"}`} />
+          </div>
+          <span className="text-sm font-mono text-gray-300">Defended Mode</span>
+        </label>
+      </div>
+      <div ref={termRef} className="bg-black border border-gray-700 rounded p-4 h-64 overflow-y-auto font-mono text-sm">
+        {output.length === 0 && !running && <span className="text-gray-600">$ awaiting simulation run...</span>}
+        {output.map((line, i) => (
+          <div key={i} className={`mb-1 ${line.startsWith("[BLOCK]")||line.startsWith("[DETECT]")||line.startsWith("[SEGMENT]")||line.startsWith("[HARDEN]")||line.startsWith("[CONTROL]")||line.startsWith("[MONITOR]")||line.startsWith("[PATCH]")||line.startsWith("[OUTCOME]") ? "text-green-400" : line.startsWith("[IMPACT]")||line.startsWith("[EXFIL]")||line.startsWith("[PERSIST]") ? "text-red-400" : "text-green-300"}`}>{line}</div>
+        ))}
+        {running && <span className="text-yellow-400 animate-pulse">█</span>}
+      </div>
+      <div className="border border-green-500/40 rounded p-4 bg-green-500/5">
+        <h3 className="text-sm font-bold font-mono text-green-400 mb-3">DEFENSE PLAYBOOK</h3>
+        <div className="space-y-2 text-sm text-gray-300 font-mono">
+          <div>✦ IoT VLAN isolation — dedicated segment with no routing to corporate network</div>
+          <div>✦ Attack Surface Management (ASM) — continuous Shodan-equivalent scanning</div>
+          <div>✦ Firmware integrity verification — signed updates, tamper detection at boot</div>
+          <div>✦ Default credential policy — automated scan + enforcement before deployment</div>
+          <div>✦ OT/ICS firewall — Modbus, BACnet, and Profinet blocked at IT/OT boundary</div>
         </div>
-        <div style={{display:"flex",gap:8,marginBottom:12}}>
-          <button onClick={run} disabled={running} style={{
-            cursor:"pointer",border:"none",borderRadius:4,
-            fontFamily:"Courier New",fontSize:11,fontWeight:700,
-            padding:"8px 16px",letterSpacing:0.5,
-            background: defended ? "#22c55e" : "#ef4444",
-            color: defended ? "#000" : "#fff",
-          }}>
-            {running ? "Running..." : "⚡ Run Simulation"}
-          </button>
-          <button onClick={() => setLines([])} style={{
-            cursor:"pointer",borderRadius:4,fontFamily:"Courier New",
-            fontSize:11,fontWeight:700,padding:"8px 16px",
-            background:"transparent",border:"1px solid #374151",color:"#9ca3af",
-          }}>
-            ↺ Reset
-          </button>
-        </div>
-        <Terminal lines={lines} />
-        <DefenseBox items={[
-          "Apply least-privilege access controls across all systems",
-          "Monitor for anomalous behavior with SIEM and EDR tools",
-          "Segment networks to limit lateral movement opportunities",
-          "Maintain audit logs for all actions — NIST DE.CM-1",
-        ]}/>
       </div>
     </div>
   )
