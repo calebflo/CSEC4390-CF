@@ -68,30 +68,55 @@ docker-compose restart frontend
 
 ## 🗂️ Project Structure
 CSEC4390-CF/
+
 ├── frontend/
+
 │   ├── src/
+
 │   │   ├── pages/              # Dashboard + 9 threat modules + MoltbookFeed
+
 │   │   ├── components/         # ModuleHeader, StatCard, Terminal, DefenseBox
+
 │   │   ├── context/            # SimulationContext (cross-module state)
+
 │   │   ├── App.jsx             # Router + nav
+
 │   │   ├── main.jsx            # ReactDOM entry + providers
+
 │   │   └── index.css           # Global dark theme
+
 │   ├── tailwind.config.js
+
 │   ├── package.json
+
 │   └── Dockerfile
+
 ├── backend/
+
 │   ├── app/
+
 │   │   ├── main.py             # FastAPI app + all endpoints
+
 │   │   └── routers/            # 9 module routers
+
 │   ├── tests/
+
 │   │   └── test_all.py         # pytest suite
+
 │   ├── requirements.txt
+
 │   └── Dockerfile
+
 ├── .github/
+
 │   └── workflows/
+
 │       └── ci.yml              # GitHub Actions CI
+
 ├── docker-compose.yml
+
 └── README.md
+
 ---
 
 ## 🧠 Threat Modules
